@@ -1,22 +1,13 @@
 'use strict';
-const Author = require('./index').Author;
 
 module.exports = (sequelize, DataTypes) => {
-  var Book = sequelize.define('Book', {
+  var Book = sequelize.define('book', {
     name: {
       type: DataTypes.STRING,
       allowNull: false
     },
     description: {
       type: DataTypes.STRING
-    },
-    author: {
-      allowNull: false,
-      type: DataTypes.INTEGER,
-      references: {
-        model: Author,
-        key: 'id'
-      }
     },
     usesCount: {
       allowNull: false,
@@ -28,10 +19,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       field: 'created_at',
       defaultValue: DataTypes.NOW
-    }
+    },
   }, {
       timestamps: false,
       underscored: true
   });
+
+  Book.author = Book.belongsTo(sequelize.models.author, {as: 'author'});
+
   return Book;
 };

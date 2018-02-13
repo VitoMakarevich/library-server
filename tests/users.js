@@ -1,32 +1,45 @@
 var assert = require('chai').assert;
 
-const methods = require('../methods').author;
-const author = require ('../models').author;
+const methods = require('../methods').user;
+const user = require ('../models').user;
 const sequelize = require('../models').sequelize;
 
 const testData = [
-  { firstName: 'someUser1FirstName', lastName: 'someUser1LastName' },
-  { firstName: 'someUser2FirstName', lastName: 'someUser2LastName' }
+  { 
+    firstName: 'someUser1FirstName', 
+    lastName: 'someUser1LastName',
+    email: 'someEmail1@mail.com',
+    passportNumber: 'passport1'
+  },
+  { 
+    firstName: 'someUser2FirstName', 
+    lastName: 'someUser2LastName',
+    email: 'someEmail2@mail.com',
+    passportNumber: 'passport2'
+  }
 ];
 
-describe('Author methods', function() {
+
+describe('User methods', function() {
   this.timeout(5000);
 
   beforeEach(async () => {
     await(
-      author.destroy({
+      user.destroy({
         truncate: true,
         restartIdentity: true
       })
     );
-    await(author.bulkCreate(testData));
+    await(user.bulkCreate(testData));
     
   });
 
-  it('Should create author', async function() {
+  it('Should create user', async function() {
     const request = {
       firstName: 'john',
-      lastName: 'doe'
+      lastName: 'doe',
+      email: 'email@mail.com',
+      passportNumber: '12345'
     }
     const result = await methods.create(request);
 
@@ -39,9 +52,9 @@ describe('Author methods', function() {
     delete result.id;
 
     assert.deepEqual(result, request);
-  });
+  })
 
-  it('Should read all authors', async function() {
+  it('Should read all users', async function() {
     const request = {};
 
     let result = await methods.read(request);
@@ -64,7 +77,7 @@ describe('Author methods', function() {
   });
 
 
-  it('Should read all authors with order by last name asc', async function() {
+  it('Should read all users with order by last name asc', async function() {
     const request = {
       orderField: 'last_name',
       orderDirection: 'ASC' 
@@ -89,7 +102,7 @@ describe('Author methods', function() {
     
   });
 
-  it('Should read authors with right query', async function() {
+  it('Should read users with right query', async function() {
     const request = {
       firstName: 'someUser1FirstName'
     };
@@ -118,7 +131,7 @@ describe('Author methods', function() {
     assert.lengthOf(result, 0);
   });
 
-  it('Should update existing author', async function() {
+  it('Should update existing user', async function() {
     const request = {
       id: 2,
       firstName: 'newFirstName'
@@ -141,7 +154,7 @@ describe('Author methods', function() {
 
   });
 
-  it('Should update unexisting author', async function() {
+  it('Should update unexisting user', async function() {
     const request = {
       id: 99,
       firstName: 'newFirstName'
@@ -155,7 +168,7 @@ describe('Author methods', function() {
 
   });
 
-  it('Should delete existing author', async function() {
+  it('Should delete existing user', async function() {
     const request = {
       id: 2
     };
@@ -168,7 +181,7 @@ describe('Author methods', function() {
 
   });
 
-  it('Should delete unexisting author', async function() {
+  it('Should delete unexisting user', async function() {
     const request = {
       id: 99
     };

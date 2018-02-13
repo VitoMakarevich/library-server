@@ -39,36 +39,27 @@ authorMethods.read = async ({firstName = "",
 
 authorMethods.update = async ({id, firstName, lastName}) => {
     const AFFECTED_ITEMS_ARRAY_INDEX = 1;
+    const AFFECTED_ITEMS_COUNT_ARRAY_INDEX = 0;
     const FIRST_AFFECTED_ITEM_INDEX = 0;
     const DEFAULT_VALUE = {};
 
     const { Op } = sequelize;
+
     const filter = {
         where: {
             id
         },
         returning: true
     };
-    
-
-    let oldAuthor = (await AuthorModel.findById(id));
-    
-    if(oldAuthor === null) return {};
-
-    oldAuthor = oldAuthor.dataValues;
-
     const query = {
-        firstName: firstName || oldAuthor.firstName,
-        lastName: lastName || oldAuthor.lastName
+        firstName: sequelize.fn('COALESCE', firstName, sequelize.col('first_name')),
+        lastName: sequelize.fn('COALESCE', lastName, sequelize.col('last_name'))
     }
 
     const newAuthor = await AuthorModel.update(query, filter);
 
-    let result;
-
-    if(newAuthor[AFFECTED_ITEMS_ARRAY_INDEX] || newAuthor[1][FIRST_AFFECTED_ITEM_INDEX])
-        result = newAuthor[AFFECTED_ITEMS_ARRAY_INDEX][FIRST_AFFECTED_ITEM_INDEX].dataValues || DEFAULT_VALUE;
-
+    if(newAuthor[AFFECTED_ITEMS_COUNT_ARRAY_INDEX] === 0) return {};
+    const result = newAuthor[1][0].dataValues || DEFAULT_VALUE;
     return result;
 }
 

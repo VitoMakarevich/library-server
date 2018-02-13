@@ -17,7 +17,11 @@ module.exports = {
       },
       author: {
         allowNull: false,
-        type: Sequelize.STRING
+        type: Sequelize.INTEGER,
+        field: 'author_id',
+        references: {
+          model: 'authors'
+        }
       },
       createdAt: {
         allowNull: false,

@@ -1,33 +1,67 @@
 var assert = require('chai').assert;
 
-const methods = require('../methods').author;
-const author = require ('../models').author;
+const methods = require('../methods').book;
+const { book, author } = require ('../models');
 const sequelize = require('../models').sequelize;
 
-const testData = [
-  { firstName: 'someUser1FirstName', lastName: 'someUser1LastName' },
-  { firstName: 'someUser2FirstName', lastName: 'someUser2LastName' }
+const testBookData = [
+  { 
+    name: 'bookName1',
+    description: 'bookDesc1',
+    author: 1
+  },
+  { 
+    name: 'bookName2',
+    description: 'bookDesc2',
+    author: 2
+  }
 ];
 
-describe('Author methods', function() {
+const testAuthorData = [
+    { firstName: 'someUser1FirstName', lastName: 'someUser1LastName' },
+    { firstName: 'someUser2FirstName', lastName: 'someUser2LastName' }
+];
+
+
+describe('Book methods', function() {
   this.timeout(5000);
+
 
   beforeEach(async () => {
     await(
       author.destroy({
         truncate: true,
-        restartIdentity: true
+        restartIdentity: true,
+        cascade: true
       })
     );
-    await(author.bulkCreate(testData));
+
+    await(book.create({
+        name: 'sadasd',
+        description: '231r5',
+        author: {
+          firstName: "2321",
+          lastName: 'ew1w1e1'
+        }
+      }, {
+        include: [{
+          association: book.author
+        }]
+      }
+    ));
+
+
+    
     
   });
 
-  it('Should create author', async function() {
+  it.only('Should create book', async function() {
     const request = {
-      firstName: 'john',
-      lastName: 'doe'
+      name: '2345',
+      description: '3456',
+      author: 1
     }
+    
     const result = await methods.create(request);
 
   
@@ -39,9 +73,9 @@ describe('Author methods', function() {
     delete result.id;
 
     assert.deepEqual(result, request);
-  });
+  })
 
-  it('Should read all authors', async function() {
+  it('Should read all users', async function() {
     const request = {};
 
     let result = await methods.read(request);
@@ -64,7 +98,7 @@ describe('Author methods', function() {
   });
 
 
-  it('Should read all authors with order by last name asc', async function() {
+  it('Should read all users with order by last name asc', async function() {
     const request = {
       orderField: 'last_name',
       orderDirection: 'ASC' 
@@ -89,7 +123,7 @@ describe('Author methods', function() {
     
   });
 
-  it('Should read authors with right query', async function() {
+  it('Should read users with right query', async function() {
     const request = {
       firstName: 'someUser1FirstName'
     };
@@ -118,7 +152,7 @@ describe('Author methods', function() {
     assert.lengthOf(result, 0);
   });
 
-  it('Should update existing author', async function() {
+  it('Should update existing user', async function() {
     const request = {
       id: 2,
       firstName: 'newFirstName'
@@ -141,7 +175,7 @@ describe('Author methods', function() {
 
   });
 
-  it('Should update unexisting author', async function() {
+  it('Should update unexisting user', async function() {
     const request = {
       id: 99,
       firstName: 'newFirstName'
@@ -155,7 +189,7 @@ describe('Author methods', function() {
 
   });
 
-  it('Should delete existing author', async function() {
+  it('Should delete existing user', async function() {
     const request = {
       id: 2
     };
@@ -168,7 +202,7 @@ describe('Author methods', function() {
 
   });
 
-  it('Should delete unexisting author', async function() {
+  it('Should delete unexisting user', async function() {
     const request = {
       id: 99
     };
