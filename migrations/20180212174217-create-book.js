@@ -1,26 +1,23 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('users', {
+    return queryInterface.createTable('books', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      firstName: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        field: 'first_name'
-      },
-      lastName: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        field: 'last_name'
-      },
-      email: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false
+      },
+      description: {
+        type: Sequelize.STRING
+      },
+      author: {
+        allowNull: false,
+        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
@@ -28,14 +25,15 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
         field: 'created_at'
       },
-      passportNumber: {
+      usesCount: {
         allowNull: false,
-        type: Sequelize.STRING,
-        field: 'passport_number'
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        field: 'uses_count'
       }
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('users');
+    return queryInterface.dropTable('books');
   }
 };

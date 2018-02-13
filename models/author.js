@@ -1,22 +1,15 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  var User = sequelize.define('User', {
+  var Author = sequelize.define('author', {
     firstName: {
       type: DataTypes.STRING,
+      field: 'first_name',
       allowNull: false
     },
     lastName: {
       type: DataTypes.STRING,
+      field: 'last_name',
       allowNull: false
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    passportNumber: {
-      allowNull: false,
-      type: DataTypes.STRING,
-      field: 'passport_number'
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -27,5 +20,5 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: false,
       underscored: true
   });
-  return User;
+  return Author;
 };
