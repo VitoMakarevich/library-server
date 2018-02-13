@@ -72,7 +72,7 @@ describe('Author methods', function() {
     assert.lengthOf(result, 0);
   });
 
-  it('Should update author', async function() {
+  it('Should update existing author', async function() {
     const request = {
       id: 2,
       firstName: 'newFirstName'
@@ -92,6 +92,46 @@ describe('Author methods', function() {
     testDataItem.firstName = request.firstName;
 
     assert.deepEqual(result, testDataItem);
+
+  });
+
+  it('Should update unexisting author', async function() {
+    const request = {
+      id: 99,
+      firstName: 'newFirstName'
+    };
+
+    const EMPTY_UPDATE_ROW = {};
+
+    const result = await methods.update(request);
+
+    assert.deepEqual(result, EMPTY_UPDATE_ROW);
+
+  });
+
+  it('Should delete existing author', async function() {
+    const request = {
+      id: 2
+    };
+
+    const DELETED_ROWS_RIGHT_COUNT = 1;
+
+    const result = await methods.delete(request);
+
+    assert.deepEqual(result, DELETED_ROWS_RIGHT_COUNT);
+
+  });
+
+  it('Should delete unexisting author', async function() {
+    const request = {
+      id: 99
+    };
+
+    const DELETED_ROWS_RIGHT_COUNT = 0;
+
+    const result = await methods.delete(request);
+
+    assert.deepEqual(result, DELETED_ROWS_RIGHT_COUNT);
 
   });
 

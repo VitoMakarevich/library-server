@@ -1,11 +1,17 @@
 const {author: AuthorModel, sequelize} = require('../models');
 
-const create = async (fields) => {
-    const author = await AuthorModel.create({firstName: fields.firstName, lastName: fields.lastName});
+const authorMethods = {};
+
+authorMethods.create = async ({firstName, lastName}) => {
+    const query = {
+        firstName,
+        lastName
+    }
+    const author = await AuthorModel.create(query);
     return author.dataValues;
 }
 
-const read = async ({firstName = "",
+authorMethods.read = async ({firstName = "",
                      lastName = "",
                      limit = 10,
                      offset = 0,
@@ -31,7 +37,11 @@ const read = async ({firstName = "",
     return authors;
 }
 
-const update = async ({id, firstName, lastName}) => {
+authorMethods.update = async ({id, firstName, lastName}) => {
+    const AFFECTED_ITEMS_ARRAY_INDEX = 1;
+    const FIRST_AFFECTED_ITEM_INDEX = 0;
+    const DEFAULT_VALUE = {};
+
     const { Op } = sequelize;
     const filter = {
         where: {
@@ -41,7 +51,11 @@ const update = async ({id, firstName, lastName}) => {
     };
     
 
-    const oldAuthor = (await AuthorModel.findById(id)).dataValues;
+    let oldAuthor = (await AuthorModel.findById(id));
+    
+    if(oldAuthor === null) return {};
+
+    oldAuthor = oldAuthor.dataValues;
 
     const query = {
         firstName: firstName || oldAuthor.firstName,
@@ -52,14 +66,22 @@ const update = async ({id, firstName, lastName}) => {
 
     let result;
 
-    if(newAuthor[1] || newAuthor[1][0])
-        result = newAuthor[1][0].dataValues || [];
+    if(newAuthor[AFFECTED_ITEMS_ARRAY_INDEX] || newAuthor[1][FIRST_AFFECTED_ITEM_INDEX])
+        result = newAuthor[AFFECTED_ITEMS_ARRAY_INDEX][FIRST_AFFECTED_ITEM_INDEX].dataValues || DEFAULT_VALUE;
 
     return result;
 }
 
-module.exports = {
-    create,
-    read,
-    update
+authorMethods.delete = async ({id}) => {
+    const filter = {
+        where: {
+            id
+        }
+    };
+
+    const deletedRowsCount = AuthorModel.destroy(filter);
+
+    return deletedRowsCount;
 }
+
+module.exports = authorMethods;
