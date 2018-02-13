@@ -70,6 +70,29 @@ describe('Author methods', function() {
 
     assert.isArray(result);
     assert.lengthOf(result, 0);
-  })
+  });
+
+  it('Should update author', async function() {
+    const request = {
+      id: 2,
+      firstName: 'newFirstName'
+    };
+
+    const result = await methods.update(request);
+
+    assert.property(result, 'createdAt');
+    delete result.createdAt;
+
+    assert.property(result, 'id');
+    assert.isNumber(result.id);
+    delete result.id;
+
+    const testDataItem = testData[1];
+
+    testDataItem.firstName = request.firstName;
+
+    assert.deepEqual(result, testDataItem);
+
+  });
 
 });
