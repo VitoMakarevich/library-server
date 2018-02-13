@@ -5,14 +5,19 @@ const bookMethods = {};
 bookMethods.create = async ({ name, description, author }) => {
     const query = {
         name,
-        description,
-        author
-    }
-    console.log(1)
-    console.log(BookModel);
+        description
+    };
     const book = await BookModel.create(query);
-    console.log(book)
-    return book.dataValues;
+    const result = await book.setAuthor(author, {returning: true});
+    const bookRes = await BookModel.findOne({
+        where: {
+            id: result.dataValues.id
+        },
+        include: [
+            { model: AuthorModel, as: 'author' }
+        ]
+    });
+    return bookRes.dataValues;
 }
 
 bookMethods.read = async ({ 
