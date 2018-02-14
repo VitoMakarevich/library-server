@@ -8,63 +8,78 @@ const testBookData = [
   { 
     name: 'bookName1',
     description: 'bookDesc1',
+    usesCount: 1,
     author: 1
   },
   { 
     name: 'bookName2',
     description: 'bookDesc2',
+    usesCount: 0,
     author: 2
   }
 ];
+
+
 
 const testAuthorData = [
     { firstName: 'someUser1FirstName', lastName: 'someUser1LastName' },
     { firstName: 'someUser2FirstName', lastName: 'someUser2LastName' }
 ];
 
+const mappedAndSortedTestData = testBookData
+.map((bookData) => {
+  bookData.author = testAuthorData[bookData.author - 1];
+  return bookData;
+})
+.sort((bookData1, bookData2) => bookData1.name < bookData2.name);
 
-describe('Book methods', function() {
+describe.only('Book methods', function() {
   this.timeout(5000);
 
 
   beforeEach(async () => {
-    await(
-      author.destroy({
+    await author.destroy({
         truncate: true,
         restartIdentity: true,
         cascade: true
-      })
-    );
+    });
 
-    await(book.create({
-        name: 'sadasd',
-        description: '231r5',
-        author: {
-          firstName: "2321",
-          lastName: 'ew1w1e1'
+    await book.destroy({
+      truncate: true,
+      restartIdentity: true,
+      cascade: true
+    })
+
+    const promiseArray = mappedAndSortedTestData.map((dataElement) => {
+      return book.create(
+        dataElement,
+        {
+          include: [{
+            association: book.author
+          }]
         }
-      }, {
-        include: [{
-          association: book.author
-        }]
-      }
-    ));
-
-
-    
-    
+      )
+    });
+    await promiseArray[0];
+    await promiseArray[1];
   });
 
-  it.only('Should create book', async function() {
+  it('Should create book', async function() {
     const request = {
-      name: '2345',
-      description: '3456',
+      name: '1234',
+      description: '2345',
       author: 1
     }
     
     const result = await methods.create(request);
 
-  
+    const expected = {
+      name: request.name,
+      description: request.description,
+      author: mappedAndSortedTestData[request.author - 1].author,
+      usesCount: 0
+    }
+
     assert.property(result, 'createdAt');
     delete result.createdAt;
 
@@ -72,78 +87,116 @@ describe('Book methods', function() {
     assert.isNumber(result.id);
     delete result.id;
 
-    assert.deepEqual(result, request);
+    assert.property(result.author, 'id');
+    assert.isNumber(result.author.id);
+    delete result.author.id;
+
+    assert.property(result, 'author');
+    assert.isObject(result.author);
+    assert.property(result.author, 'createdAt');
+    delete result.author.createdAt;
+
+    assert.deepEqual(result, expected);
   })
 
-  it('Should read all users', async function() {
+  it('Should read all books', async function() {
     const request = {};
 
-    let result = await methods.read(request);
+    let result = await methods.read(request); 
 
-    result = result.map((resultItem) => {
-      assert.property(resultItem, 'createdAt');
-      delete resultItem.createdAt;
+    result = result.map((item) => {
+      assert.property(item, 'createdAt');
+      delete item.createdAt;
   
-      assert.property(resultItem, 'id');
-      assert.isNumber(resultItem.id);
-      delete resultItem.id;
+      assert.property(item, 'id');
+      assert.isNumber(item.id);
+      delete item.id;
+  
+      assert.property(item.author, 'id');
+      assert.isNumber(item.author.id);
+      delete item.author.id;
+  
+      assert.property(item, 'author');
+      assert.isObject(item.author);
+      assert.property(item.author, 'createdAt');
+      delete item.author.createdAt;
 
-      return resultItem;
-    });
+      return item;
+    })
 
-    const sortedTestData = testData.sort((element1, element2) => element1.firstName < element2.firstName ) 
-
-    assert.deepEqual(result, sortedTestData);
+    assert.deepEqual(result, mappedAndSortedTestData);
 
   });
 
 
-  it('Should read all users with order by last name asc', async function() {
+  it('Should read all books with order by name asc', async function() {
     const request = {
-      orderField: 'last_name',
+      orderField: 'name',
       orderDirection: 'ASC' 
     };
 
+    const sortedTestData = mappedAndSortedTestData.sort((item1, item2) => item1.name > item2.name);
+
     let result = await methods.read(request);
 
-    result = result.map((resultItem) => {
-      assert.property(resultItem, 'createdAt');
-      delete resultItem.createdAt;
+    result = result.map((item) => {
+      assert.property(item, 'createdAt');
+      delete item.createdAt;
   
-      assert.property(resultItem, 'id');
-      assert.isNumber(resultItem.id);
-      delete resultItem.id;
+      assert.property(item, 'id');
+      assert.isNumber(item.id);
+      delete item.id;
+  
+      assert.property(item.author, 'id');
+      assert.isNumber(item.author.id);
+      delete item.author.id;
+  
+      assert.property(item, 'author');
+      assert.isObject(item.author);
+      assert.property(item.author, 'createdAt');
+      delete item.author.createdAt;
 
-      return resultItem;
+      return item;
     })
 
-    const sortedTestData = testData.sort((element1, element2) => element1.lastName > element2.lastName ) 
-    
     assert.deepEqual(result, sortedTestData);
     
   });
 
-  it('Should read users with right query', async function() {
+  it('Should read books with right query', async function() {
     const request = {
-      firstName: 'someUser1FirstName'
+      name: mappedAndSortedTestData[0].name
     };
 
-    const result = await methods.read(request);
+    let result = await methods.read(request);
 
-    const resultItem = result[0];
-    assert.property(resultItem, 'createdAt');
-    delete resultItem.createdAt;
+    result = result.map((item) => {
+      assert.property(item, 'createdAt');
+      delete item.createdAt;
+  
+      assert.property(item, 'id');
+      assert.isNumber(item.id);
+      delete item.id;
+  
+      assert.property(item.author, 'id');
+      assert.isNumber(item.author.id);
+      delete item.author.id;
+  
+      assert.property(item, 'author');
+      assert.isObject(item.author);
+      assert.property(item.author, 'createdAt');
+      delete item.author.createdAt;
 
-    assert.property(resultItem, 'id');
-    assert.isNumber(resultItem.id);
-    delete resultItem.id;
+      return item;
+    })
 
-    assert.deepEqual(result, testData.slice(0, 1));
+    assert.lengthOf(result, 1);
+    assert.deepEqual(result, mappedAndSortedTestData.slice(0, 1));
   });
 
   it('Should read authors with wrong query', async function() {
     const request = {
-      firstName: 'wrong'
+      name: 'wrong'
     };
 
     const result = await methods.read(request);
@@ -152,10 +205,10 @@ describe('Book methods', function() {
     assert.lengthOf(result, 0);
   });
 
-  it('Should update existing user', async function() {
+  it('Should update existing book', async function() {
     const request = {
       id: 2,
-      firstName: 'newFirstName'
+      name: 'newName'
     };
 
     const result = await methods.update(request);
@@ -166,16 +219,25 @@ describe('Book methods', function() {
     assert.property(result, 'id');
     assert.isNumber(result.id);
     delete result.id;
+    
+    assert.property(result.author, 'id');
+    assert.isNumber(result.author.id);
+    delete result.author.id;
+    
+    assert.property(result, 'author');
+    assert.isObject(result.author);
+    assert.property(result.author, 'createdAt');
+    delete result.author.createdAt;
 
-    const testDataItem = testData[1];
+    const testDataItem = mappedAndSortedTestData[1];
 
-    testDataItem.firstName = request.firstName;
+    testDataItem.name = request.name;
 
     assert.deepEqual(result, testDataItem);
 
   });
 
-  it('Should update unexisting user', async function() {
+  it('Should update unexisting book', async function() {
     const request = {
       id: 99,
       firstName: 'newFirstName'

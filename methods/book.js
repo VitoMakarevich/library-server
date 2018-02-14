@@ -2,22 +2,18 @@ const { book: BookModel, author: AuthorModel, sequelize } = require('../models')
 
 const bookMethods = {};
 
-bookMethods.create = async ({ name, description, author }) => {
+bookMethods.create = async ({ name, description, author: authorId }) => {
     const query = {
         name,
         description
     };
     const book = await BookModel.create(query);
-    const result = await book.setAuthor(author, {returning: true});
-    const bookRes = await BookModel.findOne({
-        where: {
-            id: result.dataValues.id
-        },
-        include: [
-            { model: AuthorModel, as: 'author' }
-        ]
-    });
-    return bookRes.dataValues;
+    const author = await AuthorModel.findById(authorId);
+    const bookWithAuthor = await book.setAuthor(author, {returning: true});
+    const result = book.dataValues;
+    result.author = (await bookWithAuthor.getAuthor()).dataValues;
+    delete result.author_id;
+    return result;
 }
 
 bookMethods.read = async ({ 
@@ -26,39 +22,45 @@ bookMethods.read = async ({
     author = "",
     limit = 10,
     offset = 0,
-    orderField = "first_name",
+    orderField = "name",
     orderDirection = "DESC"
 }) => {
     const { Op } = sequelize;
     const filter = {
         where: {
             name: {
-                [Op.iLike]: `%${firstName}%`
+                [Op.iLike]: `%${name}%`
             },
             description: {
-                [Op.iLike]: `%${lastName}%`
+                [Op.iLike]: `%${description}%`
             },
-            author: {
-                [Op.any]: author.findAll({
-                    where: {
-                        firstName: {
-                            [Op.iLike]: `%${author}%`
-                        }
-                    },
-                    attributes: ['id']
-                })
-            }
         },
         limit,
         offset,
-        order: [[orderField, orderDirection]]
+        order: [[orderField, orderDirection]],
+        include: [
+            { model: AuthorModel, required: true, as: 'author'}
+        ],
+    };
+    let books
+    try {
+        books = await BookModel.findAll(filter);    
+    } catch (error) {
+        console.log('errror ', error)
     }
-    let books = await BookModel.findAll(filter);
-    books = books.map((element) => element.dataValues);
+    
+    books = books.map((book, index) => {
+        let parsedBook = {};
+        parsedBook = Object.assign(parsedBook, book.dataValues);
+        parsedBook.author = book.dataValues.author.dataValues;
+        delete parsedBook.author_id;
+        return parsedBook;
+    })
+    
     return books;
 }
 
-bookMethods.update = async ({id, description, author}) => {
+bookMethods.update = async ({id, name, description}) => {
     const AFFECTED_ITEMS_ARRAY_INDEX = 1;
     const AFFECTED_ITEMS_COUNT_ARRAY_INDEX = 0;
     const FIRST_AFFECTED_ITEM_INDEX = 0;
@@ -70,18 +72,27 @@ bookMethods.update = async ({id, description, author}) => {
         where: {
             id
         },
-        returning: true
+        returning: true,
+        include: [
+            { model: AuthorModel, required: true, as: 'author'}
+        ],
     };
     const query = {
         name: sequelize.fn('COALESCE', name, sequelize.col('name')),
-        description: sequelize.fn('COALESCE', description, sequelize.col('description')),
-        author: sequelize.fn('COALESCE', author, sequelize.col('author')),
+        description: sequelize.fn('COALESCE', description, sequelize.col('description'))
     }
 
-    const newbook = await BookModel.update(query, filter);
+    const findedBook = await BookModel.find(filter);
 
-    if(newbook[AFFECTED_ITEMS_COUNT_ARRAY_INDEX] === 0) return {};
-    const result = newbook[1][0].dataValues || DEFAULT_VALUE;
+    if(!findedBook) return {};
+
+    const author = (await findedBook.getAuthor()).dataValues;
+
+    const newbook = await findedBook.update(query, filter);
+    const result = newbook.dataValues;
+    delete result.author_id;
+
+    result.author = author;
     return result;
 }
 
@@ -91,9 +102,7 @@ bookMethods.delete = async ({id}) => {
             id
         }
     };
-
-    const deletedRowsCount = BookModel.destroy(filter);
-
+    const deletedRowsCount = await BookModel.destroy(filter);
     return deletedRowsCount;
 }
 
