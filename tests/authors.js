@@ -64,22 +64,20 @@ describe('Author methods', function() {
       id: 1
     };
 
-    let result = await methods.readOne(request);
+    const result = await methods.readOne(request);
 
-    result = result.map((resultItem) => {
-      assert.property(resultItem, 'createdAt');
-      delete resultItem.createdAt;
-  
-      assert.property(resultItem, 'id');
-      assert.isNumber(resultItem.id);
-      delete resultItem.id;
+    assert.property(result, 'createdAt');
+    delete result.createdAt;
 
-      return resultItem;
-    });
+    assert.property(result, 'id');
+    assert.isNumber(result.id);
+    delete result.id;
 
-    const sortedTestData = testData.sort((element1, element2) => element1.firstName < element2.firstName ) 
+    const testItem = Object.assign({}, testData[0]);
+    testItem.booksCount = 0;
+    testItem.books = [];
 
-    assert.deepEqual(result, sortedTestData);
+    assert.deepEqual(result, testItem);
   });
 
 
