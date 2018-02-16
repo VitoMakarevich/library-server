@@ -19,7 +19,7 @@ CREATE TABLE books (
     name            TEXT        NOT NULL,
     description     TEXT,
     uses_count      INTEGER     DEFAULT 0,
-    author_id       INTEGER     REFERENCES authors(id_pk),
+    author_id       INTEGER     REFERENCES authors(id_pk) ON DELETE SET NULL,
     created_at      TIMESTAMP   DEFAULT LOCALTIMESTAMP
 );
 

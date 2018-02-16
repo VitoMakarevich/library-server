@@ -38,7 +38,7 @@ describe('Author methods', function() {
     assert.deepEqual(result, request);
   });
 
-  it('Should read author with books', async function() {
+  it('Should read all authors', async function() {
     const request = {};
 
     let result = await methods.readAll(request);
@@ -63,10 +63,12 @@ describe('Author methods', function() {
 
   });
 
-  it('Should read all authors', async function() {
-    const request = {};
+  it('Should read author with books', async function() {
+    const request = {
+      id: 1
+    };
 
-    let result = await methods.read(request);
+    let result = await methods.readOne(request);
 
     result = result.map((resultItem) => {
       assert.property(resultItem, 'createdAt');
@@ -92,7 +94,7 @@ describe('Author methods', function() {
       orderDirection: 'ASC' 
     };
 
-    let result = await methods.read(request);
+    let result = await methods.readAll(request);
 
     result = result.map((resultItem) => {
       assert.property(resultItem, 'createdAt');
@@ -105,7 +107,12 @@ describe('Author methods', function() {
       return resultItem;
     })
 
-    const sortedTestData = testData.sort((element1, element2) => element1.lastName > element2.lastName ) 
+    const sortedTestData = testData
+      .sort((element1, element2) => element1.lastName > element2.lastName)
+      .map((element) => {
+        element.booksCount = 0;
+        return element;
+      }) 
     
     assert.deepEqual(result, sortedTestData);
     
@@ -116,7 +123,7 @@ describe('Author methods', function() {
       firstName: 'someUser1FirstName'
     };
 
-    const result = await methods.read(request);
+    const result = await methods.readAll(request);
 
     const resultItem = result[0];
     assert.property(resultItem, 'createdAt');
@@ -126,7 +133,10 @@ describe('Author methods', function() {
     assert.isNumber(resultItem.id);
     delete resultItem.id;
 
-    assert.deepEqual(result, testData.slice(0, 1));
+    const expected = testData.slice(0, 1);
+    expected[0].booksCount = 0;
+
+    assert.deepEqual(result, expected);
   });
 
   it('Should read authors with wrong query', async function() {
@@ -134,7 +144,7 @@ describe('Author methods', function() {
       firstName: 'wrong'
     };
 
-    const result = await methods.read(request);
+    const result = await methods.readAll(request);
 
     assert.isArray(result);
     assert.lengthOf(result, 0);
@@ -158,6 +168,7 @@ describe('Author methods', function() {
     const testDataItem = testData[1];
 
     testDataItem.firstName = request.firstName;
+    testDataItem.booksCount = 0;
 
     assert.deepEqual(result, testDataItem);
 
@@ -182,24 +193,32 @@ describe('Author methods', function() {
       id: 2
     };
 
-    const DELETED_ROWS_RIGHT_COUNT = 1;
-
     const result = await methods.delete(request);
 
-    assert.deepEqual(result, DELETED_ROWS_RIGHT_COUNT);
+    assert.property(result, 'createdAt');
+    delete result.createdAt;
+
+    assert.property(result, 'id');
+    assert.isNumber(result.id);
+    delete result.id;
+
+    const testDataItem = testData[1];
+
+    testDataItem.booksCount = 0;
+
+    assert.deepEqual(result, testDataItem);
 
   });
 
-  it('Should delete unexisting author', async function() {
+  it.only('Should delete unexisting author', async function() {
     const request = {
       id: 99
     };
 
-    const DELETED_ROWS_RIGHT_COUNT = 0;
 
     const result = await methods.delete(request);
 
-    assert.deepEqual(result, DELETED_ROWS_RIGHT_COUNT);
+    assert.deepEqual(result, {});
 
   });
 

@@ -14,7 +14,42 @@ sqls.create = `INSERT INTO authors(
                     first_name AS "firstName",
                     last_name  AS "lastName",
                     created_at AS "createdAt";`
-sqls.readAll = (orderField, orderDirection) => `SELECT
+sqls.readAll = (orderField, orderDirection, firstName, lastName) => { 
+    let sqlFilter = [];
+    if(firstName && firstName.length) {
+        sqlFilter.push(`first_name ilike '%${firstName}%'`);
+    }
+    if(lastName && lastName.length) {
+        sqlFilter.push(`last_name ilike '%${lastName}%'`);
+    } 
+    let sqlQuery;
+    if(sqlFilter.length)
+        sqlQuery = "WHERE " + sqlFilter.join(' AND ');
+    else {
+        sqlQuery = "";
+    }
+
+    return `SELECT
+        id_pk                    AS "id",
+        first_name               AS "firstName",
+        last_name                AS "lastName",
+        created_at               AS "createdAt",
+        (SELECT 
+            count(*)
+        FROM 
+            books
+        WHERE author_id = auth.id_pk)::int AS "booksCount"
+    FROM
+        authors AS auth
+    ${sqlQuery}
+    ORDER BY
+        ${orderField} ${orderDirection}
+    LIMIT  $1
+    OFFSET $2
+    ;`;
+}
+
+sqls.readOne = `SELECT
                     id_pk                    AS "id",
                     first_name               AS "firstName",
                     last_name                AS "lastName",
@@ -23,23 +58,59 @@ sqls.readAll = (orderField, orderDirection) => `SELECT
                         count(*)
                     FROM 
                         books
-                    WHERE author_id = id_pk)::int AS "booksCount"
+                    WHERE author_id = id_pk)::int AS "booksCount",
+                    (SELECT 
+                        json_agg(t)
+                    FROM
+                        (SELECT 
+                            id_pk AS "id",
+                            name  AS "name",
+                            description AS "description",
+                            uses_count  AS "uses_count",
+                            created_at  AS "createdAt"
+                        FROM
+                            books
+                        WHERE 
+                            author_id = books.id_pk
+                        ) AS "t"
+                    ) AS "books"
                 FROM
                     authors
                 WHERE
-                    CASE 
-                        WHEN $1::text IS NULL THEN TRUE
-                        ELSE first_name ilike '%($1::text)%'
-                    END
-                    AND
-                    CASE 
-                        WHEN $2::text IS NULL THEN TRUE
-                        ELSE last_name ilike '%($2::text)%'
-                    END
-                ORDER BY
-                    ${orderField} ${orderDirection}
-                LIMIT  $3
-                OFFSET $4
-                ;`;
+                   id_pk = $1
+                ;`
+
+sqls.update =   `UPDATE
+                    authors AS "auth"
+                SET
+                    first_name = COALESCE($2, first_name),
+                    last_name  = COALESCE($3, last_name)
+                WHERE
+                    id_pk = $1
+                RETURNING
+                    id_pk                    AS "id",
+                    first_name               AS "firstName",
+                    last_name                AS "lastName",
+                    created_at               AS "createdAt",
+                    (SELECT 
+                        count(*)
+                    FROM 
+                        books
+                    WHERE author_id = auth.id_pk)::int AS "booksCount"`;
+
+sqls.delete = ` DELETE FROM
+                    authors AS "auth"
+                WHERE
+                    id_pk = $1
+                RETURNING
+                    id_pk                    AS "id",
+                    first_name               AS "firstName",
+                    last_name                AS "lastName",
+                    created_at               AS "createdAt",
+                    (SELECT 
+                        count(*)
+                    FROM 
+                        books
+                    WHERE author_id = auth.id_pk)::int AS "booksCount"`;
 
 module.exports = sqls;

@@ -18,58 +18,33 @@ authorMethods.deleteAll = async () => {
     return deletedRows;
 };
 
-authorMethods.readAll = async ({
-                     firstName,
-                     lastName,
-                     limit = 10,
-                     offset = 0,
-                     orderField = "first_name",
-                     orderDirection = "asc"
-                    }) => {
+authorMethods.readAll = async ({firstName, lastName, limit = 10, offset = 0, orderField = "first_name", orderDirection = "asc" }) => {
     const client = await(db.connect());
-
-
-    const findedRows = (await client.query(sqls.readAll(orderField, orderDirection), [firstName, lastName, limit, offset])).rows;
+    console.log(firstName)
+    const findedRows = (await client.query(sqls.readAll(orderField, orderDirection, firstName, lastName), [limit, offset])).rows;
     db.close(client);
     return findedRows;
 }
 
-// authorMethods.update = async ({id, firstName, lastName}) => {
-//     const AFFECTED_ITEMS_ARRAY_INDEX = 1;
-//     const AFFECTED_ITEMS_COUNT_ARRAY_INDEX = 0;
-//     const FIRST_AFFECTED_ITEM_INDEX = 0;
-//     const DEFAULT_VALUE = {};
+authorMethods.readOne = async ({id}) => {
+    const client = await(db.connect());
+    const author = (await client.query(sqls.readOne, [id])).rows[0];
+    db.close(client);
+    return author;
+};
 
-//     const { Op } = sequelize;
+authorMethods.update = async ({id, firstName, lastName}) => {
+    const client = await(db.connect());
+    const author = (await client.query(sqls.update, [id, firstName, lastName])).rows[0] || {};
+    db.close(client);
+    return author;
+}
 
-//     const filter = {
-//         where: {
-//             id
-//         },
-//         returning: true
-//     };
-//     const query = {
-//         firstName: sequelize.fn('COALESCE', firstName, sequelize.col('first_name')),
-//         lastName: sequelize.fn('COALESCE', lastName, sequelize.col('last_name'))
-//     }
-
-//     const newAuthor = await AuthorModel.update(query, filter);
-
-//     if(newAuthor[AFFECTED_ITEMS_COUNT_ARRAY_INDEX] === 0) return {};
-//     const result = newAuthor[1][0].dataValues || DEFAULT_VALUE;
-//     return result;
-// }
-
-// authorMethods.delete = async ({id}) => {
-//     const filter = {
-//         where: {
-//             id
-//         }
-//     };
-
-//     const deletedRowsCount = AuthorModel.destroy(filter);
-
-//     return deletedRowsCount;
-// }
+authorMethods.delete = async ({id}) => {
+    const client = await(db.connect());
+    const author = (await client.query(sqls.delete, [id])).rows[0] || {};
+    db.close(client);
+    return author;
+}
 
 module.exports = authorMethods;
