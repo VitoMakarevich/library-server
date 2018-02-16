@@ -60,7 +60,7 @@ sqls.readOne = `SELECT
                         books
                     WHERE author_id = id_pk)::int AS "booksCount",
                     (SELECT 
-                        json_agg(t)
+                        COALESCE(json_agg(t), json_build_array())
                     FROM
                         (SELECT 
                             id_pk AS "id",
