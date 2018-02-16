@@ -1,8 +1,6 @@
-var assert = require('chai').assert;
+const assert = require('chai').assert;
 
-const methods = require('../methods').book;
-const { book, author } = require ('../models');
-const sequelize = require('../models').sequelize;
+const { bookMethods: book, authorMethods: author } = require('../methods');
 
 const testBookData = [
   { 

@@ -1,6 +1,8 @@
-const { book: BookModel, author: AuthorModel, sequelize } = require('../models');
+const { db } = require('../utils');
 
 const bookMethods = {};
+
+const sqls = require('./sqls').author;
 
 bookMethods.create = async ({ name, description, author: authorId }) => {
     const query = {
