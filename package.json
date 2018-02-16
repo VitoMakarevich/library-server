@@ -4,12 +4,18 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha --exit ./tests"
+    "test": "NODE_ENV=test mocha --exit ./tests/authors.js",
+    "migrate:up:test": "node ./node_modules/db-migrate/bin/db-migrate up --config ./config/migrate.json -e test --migration-dir='./migrations'",
+    "migrate:down:test": "node ./node_modules/db-migrate/bin/db-migrate down --config ./config/migrate.json -e test --migration-dir='./migrations'",
+    "migrate:up:dev": "node ./node_modules/db-migrate/bin/db-migrate up --config ./config/migrate.json -e dev --migration-dir='./migrations'",
+    "migrate:down:dev": "node ./node_modules/db-migrate/bin/db-migrate down --config ./config/migrate.json -e dev --migration-dir='./migrations'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "db-migrate": "^0.10.5",
+    "db-migrate-pg": "^0.3.1",
     "express": "^4.16.2",
     "pg": "^7.4.1",
     "sequelize": "^4.33.3",

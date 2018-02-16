@@ -33,7 +33,7 @@ const mappedAndSortedTestData = testBookData
 })
 .sort((bookData1, bookData2) => bookData1.name < bookData2.name);
 
-describe.only('Book methods', function() {
+describe('Book methods', function() {
   this.timeout(5000);
 
 

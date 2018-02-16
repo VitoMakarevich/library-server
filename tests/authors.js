@@ -1,8 +1,6 @@
 var assert = require('chai').assert;
 
 const methods = require('../methods').author;
-const { author } = require ('../models');
-const sequelize = require('../models').sequelize;
 
 const testData = [
   { firstName: 'someUser1FirstName', lastName: 'someUser1LastName' },
@@ -14,14 +12,10 @@ describe('Author methods', function() {
 
   beforeEach(async () => {
 
-    await(
-      author.destroy({
-        truncate: true,
-        restartIdentity: true,
-        cascade: true
-      })
-    );
-    await(author.bulkCreate(testData));
+    await methods.deleteAll();
+
+    await methods.create(testData[0]);
+    await methods.create(testData[1]);
     
   });
 
@@ -30,6 +24,7 @@ describe('Author methods', function() {
       firstName: 'john',
       lastName: 'doe'
     }
+
     const result = await methods.create(request);
 
   
@@ -46,7 +41,7 @@ describe('Author methods', function() {
   it('Should read author with books', async function() {
     const request = {};
 
-    let result = await methods.read(request);
+    let result = await methods.readAll(request);
 
     result = result.map((resultItem) => {
       assert.property(resultItem, 'createdAt');
@@ -59,9 +54,12 @@ describe('Author methods', function() {
       return resultItem;
     });
 
-    const sortedTestData = testData.sort((element1, element2) => element1.firstName < element2.firstName ) 
+    const testDataWithBooks = testData.map((data) => {
+      data.booksCount = 0;
+      return data;
+    })
 
-    assert.deepEqual(result, sortedTestData);
+    assert.deepEqual(result, testDataWithBooks);
 
   });
 

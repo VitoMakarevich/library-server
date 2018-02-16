@@ -1,0 +1,16 @@
+{
+	"dev": {
+        "user": "library_development",
+        "password": "library_development",
+        "database": "library_development",
+        "host": "127.0.0.1",
+		"driver": "pg"
+	},
+	"test": {
+		"user": "library_test",
+        "password": "library_test",
+        "database": "library_test",
+        "host": "127.0.0.1",
+		"driver": "pg"
+	}
+}
