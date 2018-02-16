@@ -11,12 +11,10 @@ describe('Author methods', function() {
   this.timeout(5000);
 
   beforeEach(async () => {
-
     await methods.deleteAll();
 
     await methods.create(testData[0]);
     await methods.create(testData[1]);
-    
   });
 
   it('Should create author', async function() {
@@ -26,7 +24,6 @@ describe('Author methods', function() {
     }
 
     const result = await methods.create(request);
-
   
     assert.property(result, 'createdAt');
     delete result.createdAt;
@@ -60,7 +57,6 @@ describe('Author methods', function() {
     })
 
     assert.deepEqual(result, testDataWithBooks);
-
   });
 
   it('Should read author with books', async function() {
@@ -84,7 +80,6 @@ describe('Author methods', function() {
     const sortedTestData = testData.sort((element1, element2) => element1.firstName < element2.firstName ) 
 
     assert.deepEqual(result, sortedTestData);
-
   });
 
 
@@ -115,7 +110,6 @@ describe('Author methods', function() {
       }) 
     
     assert.deepEqual(result, sortedTestData);
-    
   });
 
   it('Should read authors with right query', async function() {
@@ -166,12 +160,10 @@ describe('Author methods', function() {
     delete result.id;
 
     const testDataItem = testData[1];
-
     testDataItem.firstName = request.firstName;
     testDataItem.booksCount = 0;
 
     assert.deepEqual(result, testDataItem);
-
   });
 
   it('Should update unexisting author', async function() {
@@ -179,13 +171,11 @@ describe('Author methods', function() {
       id: 99,
       firstName: 'newFirstName'
     };
-
     const EMPTY_UPDATE_ROW = {};
 
     const result = await methods.update(request);
 
     assert.deepEqual(result, EMPTY_UPDATE_ROW);
-
   });
 
   it('Should delete existing author', async function() {
@@ -203,23 +193,18 @@ describe('Author methods', function() {
     delete result.id;
 
     const testDataItem = testData[1];
-
     testDataItem.booksCount = 0;
 
     assert.deepEqual(result, testDataItem);
-
   });
 
-  it.only('Should delete unexisting author', async function() {
+  it('Should delete unexisting author', async function() {
     const request = {
       id: 99
     };
 
-
     const result = await methods.delete(request);
 
     assert.deepEqual(result, {});
-
   });
-
 });
