@@ -27,7 +27,7 @@ authorMethods.readAll = async ({firstName, lastName, limit = 10, offset = 0, ord
 
 authorMethods.readOne = async ({id}) => {
     const client = await(db.connect());
-    const author = (await client.query(sqls.readOne, [id])).rows[0];
+    const author = (await client.query(sqls.readOne, [id])).rows[0] || {};
     db.close(client);
     return author;
 };

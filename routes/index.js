@@ -1,5 +1,11 @@
-const authors = require('./authors');
+const author = require('./author');
+const user = require('./user');
+const book = require('./book');
+const binding = require('./binding');
 
 module.exports = {
-    authors
+    author,
+    user,
+    book,
+    binding
 }

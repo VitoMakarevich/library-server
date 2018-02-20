@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "NODE_ENV=dev node index",
     "test": "NODE_ENV=test mocha --exit ./tests",
     "migrate:up:test": "node ./node_modules/db-migrate/bin/db-migrate up --config ./config/migrate.json -e test --migration-dir='./migrations'",
     "migrate:down:test": "node ./node_modules/db-migrate/bin/db-migrate down --config ./config/migrate.json -e test --migration-dir='./migrations'",
@@ -14,9 +15,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.18.2",
     "db-migrate": "^0.10.5",
     "db-migrate-pg": "^0.3.1",
     "express": "^4.16.2",
+    "nodemon": "^1.15.1",
     "pg": "^7.4.1",
     "sequelize": "^4.33.3",
     "sequelize-cli": "^3.2.0"
