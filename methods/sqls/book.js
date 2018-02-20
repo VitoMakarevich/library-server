@@ -18,13 +18,13 @@ sqls.create = `INSERT INTO books(
                     created_at      AS "createdAt",
                     uses_count      AS "usesCount",
                     author_id       AS "authorId";`
-sqls.readAll = (orderField, orderDirection, firstName, lastName) => { 
+sqls.readAll = (name, description, orderField, orderDirection) => { 
     let sqlFilter = [];
-    if(firstName && firstName.length) {
-        sqlFilter.push(`first_name ilike '%${firstName}%'`);
+    if(name && name.length) {
+        sqlFilter.push(`name ilike '%${name}%'`);
     }
-    if(lastName && lastName.length) {
-        sqlFilter.push(`last_name ilike '%${lastName}%'`);
+    if(description && description.length) {
+        sqlFilter.push(`description ilike '%${description}%'`);
     } 
     let sqlQuery;
     if(sqlFilter.length)
@@ -34,23 +34,34 @@ sqls.readAll = (orderField, orderDirection, firstName, lastName) => {
     }
 
     return `SELECT
-        id_pk                    AS "id",
-        first_name               AS "firstName",
-        last_name                AS "lastName",
-        created_at               AS "createdAt",
-        (SELECT 
-            count(*)
-        FROM 
-            books
-        WHERE author_id = auth.id_pk)::int AS "booksCount"
-    FROM
-        authors AS auth
-    ${sqlQuery}
-    ORDER BY
-        ${orderField} ${orderDirection}
-    LIMIT  $1
-    OFFSET $2
-    ;`;
+            id_pk                    AS "id",
+            name                     AS "name",
+            description              AS "description",
+            created_at               AS "createdAt",
+            author_id                AS "authorId",
+            uses_count               AS "usesCount",
+            (SELECT
+                row_to_json(t)
+                FROM
+                (SELECT
+                    id_pk                    AS "id",
+                    first_name               AS "firstName",
+                    last_name                AS "lastName",
+                    created_at               AS "createdAt"
+                FROM 
+                    authors
+                WHERE
+                    authors.id_pk = books.author_id
+                ) AS t
+            ) AS "author"
+            FROM
+                books
+            ${sqlQuery}
+            ORDER BY
+                ${orderField} ${orderDirection}
+            LIMIT  $1
+            OFFSET $2
+            ;`;
 }
 
 sqls.readOne = `SELECT
@@ -84,37 +95,30 @@ sqls.readOne = `SELECT
                    id_pk = $1
                 ;`
 
-sqls.update =   `UPDATE
-                    authors AS "auth"
+sqls.update =  (authorId) => {
+    const authorStr = authorId ? `author_id = ${authorId}` : '';
+            return `UPDATE
+                    books AS "auth"
                 SET
-                    first_name = COALESCE($2, first_name),
-                    last_name  = COALESCE($3, last_name)
+                    name = COALESCE($2, name),
+                    description  = COALESCE($3, description),
+                    author_id = COALESCE($4, author_id)
                 WHERE
                     id_pk = $1
                 RETURNING
                     id_pk                    AS "id",
-                    first_name               AS "firstName",
-                    last_name                AS "lastName",
+                    name                     AS "name",
+                    description              AS "description",
                     created_at               AS "createdAt",
-                    (SELECT 
-                        count(*)
-                    FROM 
-                        books
-                    WHERE author_id = auth.id_pk)::int AS "booksCount"`;
+                    author_id                AS "authorId",
+                    uses_count               AS "usesCount"`
+};
 
 sqls.delete = ` DELETE FROM
-                    authors AS "auth"
+                    books AS "books"
                 WHERE
                     id_pk = $1
                 RETURNING
-                    id_pk                    AS "id",
-                    first_name               AS "firstName",
-                    last_name                AS "lastName",
-                    created_at               AS "createdAt",
-                    (SELECT 
-                        count(*)
-                    FROM 
-                        books
-                    WHERE author_id = auth.id_pk)::int AS "booksCount"`;
+                    id_pk                    AS "id"`;
 
 module.exports = sqls;

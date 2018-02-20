@@ -2,110 +2,41 @@ const { db } = require('../utils');
 
 const bookMethods = {};
 
-const sqls = require('./sqls').author;
+const sqls = require('./sqls').book;
 
-bookMethods.create = async ({ name, description, author: authorId }) => {
-    const query = {
-        name,
-        description
-    };
-    const book = await BookModel.create(query);
-    const author = await AuthorModel.findById(authorId);
-    const bookWithAuthor = await book.setAuthor(author, {returning: true});
-    const result = book.dataValues;
-    result.author = (await bookWithAuthor.getAuthor()).dataValues;
-    delete result.author_id;
-    return result;
+bookMethods.create = async ({name, description, authorId}) => {
+    const client = await(db.connect());
+    const createdRow = (await client.query(sqls.create, [name, description, authorId])).rows[0];
+    db.close(client);
+    return createdRow;
 }
 
-bookMethods.read = async ({ 
-    name = "",
-    description = "",
-    author = "",
-    limit = 10,
-    offset = 0,
-    orderField = "name",
-    orderDirection = "DESC"
-}) => {
-    const { Op } = sequelize;
-    const filter = {
-        where: {
-            name: {
-                [Op.iLike]: `%${name}%`
-            },
-            description: {
-                [Op.iLike]: `%${description}%`
-            },
-        },
-        limit,
-        offset,
-        order: [[orderField, orderDirection]],
-        include: [
-            { model: AuthorModel, required: true, as: 'author'}
-        ],
-    };
-    let books
-    try {
-        books = await BookModel.findAll(filter);    
-    } catch (error) {
-        console.log('errror ', error)
-    }
-    
-    books = books.map((book, index) => {
-        let parsedBook = {};
-        parsedBook = Object.assign(parsedBook, book.dataValues);
-        parsedBook.author = book.dataValues.author.dataValues;
-        delete parsedBook.author_id;
-        return parsedBook;
-    })
-    
-    return books;
+bookMethods.deleteAll = async () => {
+    const client = await(db.connect());
+    const deletedRows = await client.query(sqls.deleteAll);
+    db.close(client);
+    return deletedRows;
+};
+
+bookMethods.readAll = async ({ name = "", description = "", limit = 10, offset = 0, orderField = "name", orderDirection = "DESC"}) => {
+    const client = await(db.connect());
+    const findedRows = (await client.query(sqls.readAll(name, description, orderField, orderDirection), [limit, offset])).rows;
+    db.close(client);
+    return findedRows;
 }
 
-bookMethods.update = async ({id, name, description}) => {
-    const AFFECTED_ITEMS_ARRAY_INDEX = 1;
-    const AFFECTED_ITEMS_COUNT_ARRAY_INDEX = 0;
-    const FIRST_AFFECTED_ITEM_INDEX = 0;
-    const DEFAULT_VALUE = {};
-
-    const { Op } = sequelize;
-
-    const filter = {
-        where: {
-            id
-        },
-        returning: true,
-        include: [
-            { model: AuthorModel, required: true, as: 'author'}
-        ],
-    };
-    const query = {
-        name: sequelize.fn('COALESCE', name, sequelize.col('name')),
-        description: sequelize.fn('COALESCE', description, sequelize.col('description'))
-    }
-
-    const findedBook = await BookModel.find(filter);
-
-    if(!findedBook) return {};
-
-    const author = (await findedBook.getAuthor()).dataValues;
-
-    const newbook = await findedBook.update(query, filter);
-    const result = newbook.dataValues;
-    delete result.author_id;
-
-    result.author = author;
-    return result;
+bookMethods.update = async ({id, name, description, authorId}) => {
+    const client = await(db.connect());
+    const findedRows = (await client.query(sqls.update(authorId), [id, name, description, authorId])).rows[0] || {};
+    db.close(client);
+    return findedRows;
 }
 
 bookMethods.delete = async ({id}) => {
-    const filter = {
-        where: {
-            id
-        }
-    };
-    const deletedRowsCount = await BookModel.destroy(filter);
-    return deletedRowsCount;
+    const client = await(db.connect());
+    const deletedId = (await client.query(sqls.delete, [id])).rows[0] || {};
+    db.close(client);
+    return deletedId;
 }
 
 module.exports = bookMethods;

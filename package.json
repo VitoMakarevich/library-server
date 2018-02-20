@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha --exit ./tests/authors.js",
+    "test": "NODE_ENV=test mocha --exit ./tests",
     "migrate:up:test": "node ./node_modules/db-migrate/bin/db-migrate up --config ./config/migrate.json -e test --migration-dir='./migrations'",
     "migrate:down:test": "node ./node_modules/db-migrate/bin/db-migrate down --config ./config/migrate.json -e test --migration-dir='./migrations'",
     "migrate:up:dev": "node ./node_modules/db-migrate/bin/db-migrate up --config ./config/migrate.json -e dev --migration-dir='./migrations'",

@@ -1,23 +1,21 @@
 const assert = require('chai').assert;
 
-const { bookMethods: book, authorMethods: author } = require('../methods');
+const { book: bookMethods, author: authorMethods } = require('../methods');
 
 const testBookData = [
   { 
     name: 'bookName1',
     description: 'bookDesc1',
-    usesCount: 1,
-    author: 1
+    usesCount: 0,
+    authorId: 1
   },
   { 
     name: 'bookName2',
     description: 'bookDesc2',
     usesCount: 0,
-    author: 2
+    authorId: 2
   }
 ];
-
-
 
 const testAuthorData = [
     { firstName: 'someUser1FirstName', lastName: 'someUser1LastName' },
@@ -26,8 +24,9 @@ const testAuthorData = [
 
 const mappedAndSortedTestData = testBookData
 .map((bookData) => {
-  bookData.author = testAuthorData[bookData.author - 1];
-  return bookData;
+  const mappedBookWithAuthor = Object.assign({}, bookData)
+  mappedBookWithAuthor.author = testAuthorData[bookData.authorId - 1];
+  return mappedBookWithAuthor;
 })
 .sort((bookData1, bookData2) => bookData1.name < bookData2.name);
 
@@ -36,47 +35,32 @@ describe('Book methods', function() {
 
 
   beforeEach(async () => {
-    await author.destroy({
-        truncate: true,
-        restartIdentity: true,
-        cascade: true
-    });
-
-    await book.destroy({
-      truncate: true,
-      restartIdentity: true,
-      cascade: true
-    })
-
-    const promiseArray = mappedAndSortedTestData.map((dataElement) => {
-      return book.create(
-        dataElement,
-        {
-          include: [{
-            association: book.author
-          }]
-        }
-      )
-    });
-    await promiseArray[0];
-    await promiseArray[1];
+    await authorMethods.deleteAll();
+    await bookMethods.deleteAll();
+    for(const authorIndex in testAuthorData) {
+      await authorMethods.create(testAuthorData[authorIndex]);
+    };
+    
+    for(const bookIndex in testBookData) {
+      await bookMethods.create(testBookData[bookIndex])
+    }
   });
 
   it('Should create book', async function() {
     const request = {
       name: '1234',
       description: '2345',
-      author: 1
+      authorId: 1
     }
     
-    const result = await methods.create(request);
+    const result = await bookMethods.create(request);
 
     const expected = {
       name: request.name,
       description: request.description,
-      author: mappedAndSortedTestData[request.author - 1].author,
+      authorId: request.authorId,
       usesCount: 0
-    }
+    };
 
     assert.property(result, 'createdAt');
     delete result.createdAt;
@@ -85,22 +69,13 @@ describe('Book methods', function() {
     assert.isNumber(result.id);
     delete result.id;
 
-    assert.property(result.author, 'id');
-    assert.isNumber(result.author.id);
-    delete result.author.id;
-
-    assert.property(result, 'author');
-    assert.isObject(result.author);
-    assert.property(result.author, 'createdAt');
-    delete result.author.createdAt;
-
     assert.deepEqual(result, expected);
   })
 
   it('Should read all books', async function() {
     const request = {};
 
-    let result = await methods.read(request); 
+    let result = await bookMethods.readAll(request); 
 
     result = result.map((item) => {
       assert.property(item, 'createdAt');
@@ -135,7 +110,7 @@ describe('Book methods', function() {
 
     const sortedTestData = mappedAndSortedTestData.sort((item1, item2) => item1.name > item2.name);
 
-    let result = await methods.read(request);
+    let result = await bookMethods.readAll(request);
 
     result = result.map((item) => {
       assert.property(item, 'createdAt');
@@ -166,7 +141,7 @@ describe('Book methods', function() {
       name: mappedAndSortedTestData[0].name
     };
 
-    let result = await methods.read(request);
+    let result = await bookMethods.readAll(request);
 
     result = result.map((item) => {
       assert.property(item, 'createdAt');
@@ -197,7 +172,7 @@ describe('Book methods', function() {
       name: 'wrong'
     };
 
-    const result = await methods.read(request);
+    const result = await bookMethods.readAll(request);
 
     assert.isArray(result);
     assert.lengthOf(result, 0);
@@ -209,7 +184,7 @@ describe('Book methods', function() {
       name: 'newName'
     };
 
-    const result = await methods.update(request);
+    const result = await bookMethods.update(request);
 
     assert.property(result, 'createdAt');
     delete result.createdAt;
@@ -218,16 +193,9 @@ describe('Book methods', function() {
     assert.isNumber(result.id);
     delete result.id;
     
-    assert.property(result.author, 'id');
-    assert.isNumber(result.author.id);
-    delete result.author.id;
-    
-    assert.property(result, 'author');
-    assert.isObject(result.author);
-    assert.property(result.author, 'createdAt');
-    delete result.author.createdAt;
+    assert.property(result, 'authorId');
 
-    const testDataItem = mappedAndSortedTestData[1];
+    const testDataItem = testBookData[1];
 
     testDataItem.name = request.name;
 
@@ -243,7 +211,7 @@ describe('Book methods', function() {
 
     const EMPTY_UPDATE_ROW = {};
 
-    const result = await methods.update(request);
+    const result = await bookMethods.update(request);
 
     assert.deepEqual(result, EMPTY_UPDATE_ROW);
 
@@ -254,11 +222,9 @@ describe('Book methods', function() {
       id: 2
     };
 
-    const DELETED_ROWS_RIGHT_COUNT = 1;
+    const result = await bookMethods.delete(request);
 
-    const result = await methods.delete(request);
-
-    assert.deepEqual(result, DELETED_ROWS_RIGHT_COUNT);
+    assert.deepEqual(result, request);
 
   });
 
@@ -269,9 +235,9 @@ describe('Book methods', function() {
 
     const DELETED_ROWS_RIGHT_COUNT = 0;
 
-    const result = await methods.delete(request);
+    const result = await bookMethods.delete(request);
 
-    assert.deepEqual(result, DELETED_ROWS_RIGHT_COUNT);
+    assert.deepEqual(result, {});
 
   });
 

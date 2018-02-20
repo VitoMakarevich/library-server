@@ -20,7 +20,6 @@ authorMethods.deleteAll = async () => {
 
 authorMethods.readAll = async ({firstName, lastName, limit = 10, offset = 0, orderField = "first_name", orderDirection = "asc" }) => {
     const client = await(db.connect());
-    console.log(firstName)
     const findedRows = (await client.query(sqls.readAll(orderField, orderDirection, firstName, lastName), [limit, offset])).rows;
     db.close(client);
     return findedRows;

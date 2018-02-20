@@ -1,91 +1,41 @@
-const { user: UserModel, sequelize } = require('../models');
+const { db } = require('../utils');
 
 const userMethods = {};
 
-userMethods.create = async ({ firstName, lastName, email, passportNumber }) => {
-    const query = {
-        firstName,
-        lastName,
-        email,
-        passportNumber
-    }
-    const user = await UserModel.create(query);
-    return user.dataValues;
+const sqls = require('./sqls').user;
+
+
+userMethods.deleteAll = async() => {
+    const client = await(db.connect());
+    const deletedRows = await client.query(sqls.deleteAll);
+    db.close(client);
+    return deletedRows;
+}
+userMethods.create = async ({firstName, lastName, email = "", passportNumber = ""}) => {
+    const client = await(db.connect());
+    const deletedRows = (await client.query(sqls.create, [firstName, lastName, email, passportNumber])).rows[0];
+    db.close(client);
+    return deletedRows;
 }
 
-userMethods.read = async ({ 
-    firstName = "",
-    lastName = "",
-    passportNumber = "",
-    email = "",
-    limit = 10,
-    offset = 0,
-    orderField = "first_name",
-    orderDirection = "DESC"
-}) => {
-    const { Op } = sequelize;
-    const filter = {
-        where: {
-            firstName: {
-                [Op.iLike]: `%${firstName}%`
-            },
-            lastName: {
-                [Op.iLike]: `%${lastName}%`
-            },
-            email: {
-                [Op.iLike]: `%${email}%`
-            },
-            passportNumber: {
-                [Op.iLike]: `%${passportNumber}%`
-            }
-        },
-        limit,
-        offset,
-        order: [[orderField, orderDirection]]
-    }
-    let users = await UserModel.findAll(filter);
-    users = users.map((element) => element.dataValues);
-    return users;
+userMethods.read = async ({ firstName = "", lastName = "", passportNumber = "", email = "", limit = 10, offset = 0, orderField = "first_name", orderDirection = "DESC"}) => {
+    const client = await(db.connect());
+    const findedRows = (await client.query(sqls.readAll(firstName, lastName, passportNumber, email, orderField, orderDirection), [limit, offset])).rows;
+    db.close(client);
+    return findedRows;
 }
 
 userMethods.update = async ({id, firstName, lastName, passportNumber, email}) => {
-    const AFFECTED_ITEMS_ARRAY_INDEX = 1;
-    const AFFECTED_ITEMS_COUNT_ARRAY_INDEX = 0;
-    const FIRST_AFFECTED_ITEM_INDEX = 0;
-    const DEFAULT_VALUE = {};
-
-    const { Op } = sequelize;
-
-    const filter = {
-        where: {
-            id
-        },
-        returning: true
-    };
-    const query = {
-        firstName: sequelize.fn('COALESCE', firstName, sequelize.col('first_name')),
-        lastName: sequelize.fn('COALESCE', lastName, sequelize.col('last_name')),
-        email: sequelize.fn('COALESCE', email, sequelize.col('email')),
-        passportNumber: sequelize.fn('COALESCE', passportNumber, sequelize.col('passport_number'))
-    }
-
-    const newUser = await UserModel.update(query, filter);
-
-    if(newUser[AFFECTED_ITEMS_COUNT_ARRAY_INDEX] === 0) return {};
-    const result = newUser[1][0].dataValues || DEFAULT_VALUE;
-    return result;
+    const client = await(db.connect());
+    const findedRows = (await client.query(sqls.update, [id, firstName, lastName, passportNumber, email])).rows[0] || {};
+    db.close(client);
+    return findedRows;
 }
-
 userMethods.delete = async ({id}) => {
-    const filter = {
-        where: {
-            id
-        }
-    };
-
-    const deletedRowsCount = UserModel.destroy(filter);
-
-    return deletedRowsCount;
+    const client = await(db.connect());
+    const findedRows = (await client.query(sqls.delete, [id])).rows[0] || {};
+    db.close(client);
+    return findedRows;
 }
 
 module.exports = userMethods;
