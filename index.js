@@ -6,6 +6,10 @@ const express = require('express');
 const app = express();
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+    console.log(req.query);
+    next();
+})
 
 app.use('/authors', routes.author);
 app.use('/users', routes.user);

@@ -21,8 +21,9 @@ userMethods.create = async ({firstName, lastName, email = "", passportNumber = "
 userMethods.read = async ({ firstName = "", lastName = "", passportNumber = "", email = "", limit = 10, offset = 0, orderField = "first_name", orderDirection = "DESC"}) => {
     const client = await(db.connect());
     const findedRows = (await client.query(sqls.readAll(firstName, lastName, passportNumber, email, orderField, orderDirection), [limit, offset])).rows;
+    const count = (await client.query(sqls.readCount(firstName, lastName, passportNumber, email))).rows[0].count;
     db.close(client);
-    return findedRows;
+    return {users: findedRows, numItems: count};
 }
 
 userMethods.update = async ({id, firstName, lastName, passportNumber, email}) => {

@@ -39,8 +39,8 @@ describe('Author methods', function() {
     const request = {};
 
     let result = await methods.readAll(request);
-
-    result = result.map((resultItem) => {
+    assert.equal(result.numItems, testData.length);
+    result = result.authors.map((resultItem) => {
       assert.property(resultItem, 'createdAt');
       delete resultItem.createdAt;
   
@@ -88,8 +88,9 @@ describe('Author methods', function() {
     };
 
     let result = await methods.readAll(request);
-
-    result = result.map((resultItem) => {
+    
+    assert.equal(result.numItems, testData.length);
+    result = result.authors.map((resultItem) => {
       assert.property(resultItem, 'createdAt');
       delete resultItem.createdAt;
   
@@ -116,8 +117,9 @@ describe('Author methods', function() {
     };
 
     const result = await methods.readAll(request);
-
-    const resultItem = result[0];
+    assert.equal(result.numItems, 1);
+    
+    const resultItem = result.authors[0];
     assert.property(resultItem, 'createdAt');
     delete resultItem.createdAt;
 
@@ -128,7 +130,7 @@ describe('Author methods', function() {
     const expected = testData.slice(0, 1);
     expected[0].booksCount = 0;
 
-    assert.deepEqual(result, expected);
+    assert.deepEqual(result.authors, expected);
   });
 
   it('Should read authors with wrong query', async function() {
@@ -137,9 +139,10 @@ describe('Author methods', function() {
     };
 
     const result = await methods.readAll(request);
+    assert.equal(result.numItems, 0);
 
-    assert.isArray(result);
-    assert.lengthOf(result, 0);
+    assert.isArray(result.authors);
+    assert.lengthOf(result.authors, 0);
   });
 
   it('Should update existing author', async function() {

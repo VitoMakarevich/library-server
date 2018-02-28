@@ -21,8 +21,9 @@ bindingMethods.deleteAll = async () => {
 bindingMethods.readAll = async ({ limit = 10, offset = 0, orderField = "created_at", orderDirection = "DESC"}) => {
     const client = await(db.connect());
     const findedRows = (await client.query(sqls.readAll(orderField, orderDirection), [limit, offset])).rows;
+    const count = (await client.query(sqls.readCount)).rows[0].count;
     db.close(client);
-    return findedRows;
+    return {bindings: findedRows, numItems: count};
 }
 
 bindingMethods.finish = async ({id}) => {

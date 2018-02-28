@@ -16,6 +16,12 @@ sqls.create = `INSERT INTO bindings(
                     created_at      AS "createdAt",
                     finished_at     AS "finishedAt";`
 
+
+sqls.readCount = `SELECT
+                count(*)
+            FROM
+                bindings;`;
+
 sqls.readAll = (orderField, orderDirection) => { 
     return `SELECT
                 id_pk       AS "id",

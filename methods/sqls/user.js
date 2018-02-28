@@ -27,6 +27,35 @@ sqls.create = `INSERT INTO users(
                     WHERE
                         user_id = users.id_pk
                     )               AS "usedBooksCount";`
+
+sqls.readCount = (firstName, lastName, passportNumber, email) => { 
+    let sqlFilter = [];
+    if(firstName && firstName.length) {
+        sqlFilter.push(`first_name ilike '%${firstName}%'`);
+    }
+    if(lastName && lastName.length) {
+        sqlFilter.push(`last_name ilike '%${lastName}%'`);
+    } 
+    if(email && email.length) {
+        sqlFilter.push(`email ilike '%${email}%'`);
+    } 
+    if(passportNumber && passportNumber.length) {
+        sqlFilter.push(`passport_number ilike '%${passportNumber}%'`);
+    } 
+    let sqlQuery;
+    if(sqlFilter.length)
+        sqlQuery = "WHERE " + sqlFilter.join(' AND ');
+    else {
+        sqlQuery = "";
+    }
+
+    return `SELECT
+        count(*)
+    FROM
+        users
+    ${sqlQuery}
+    ;`;
+}
 sqls.readAll = (firstName, lastName, passportNumber, email, orderField, orderDirection) => { 
     let sqlFilter = [];
     if(firstName && firstName.length) {

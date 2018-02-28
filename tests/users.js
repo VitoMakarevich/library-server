@@ -89,7 +89,8 @@ describe('User methods', function() {
 
     let result = await userMethods.read(request);
 
-    result = result.map((resultItem) => {
+    assert.equal(result.numItems, testUserData.length)
+    result = result.users.map((resultItem) => {
       assert.property(resultItem, 'createdAt');
       delete resultItem.createdAt;
   
@@ -115,7 +116,8 @@ describe('User methods', function() {
 
     let result = await userMethods.read(request);
 
-    result = result.map((resultItem) => {
+    assert.equal(result.numItems, testUserData.length)
+    result = result.users.map((resultItem) => {
       assert.property(resultItem, 'createdAt');
       delete resultItem.createdAt;
   
@@ -139,7 +141,9 @@ describe('User methods', function() {
 
     const result = await userMethods.read(request);
 
-    const resultItem = result[0];
+    assert.equal(result.numItems, 1)
+
+    const resultItem = result.users[0];
     assert.property(resultItem, 'createdAt');
     delete resultItem.createdAt;
 
@@ -147,18 +151,20 @@ describe('User methods', function() {
     assert.isNumber(resultItem.id);
     delete resultItem.id;
 
-    assert.deepEqual(result, testUserData.slice(0, 1));
+    assert.deepEqual(result.users, testUserData.slice(0, 1));
   });
 
-  it('Should read authors with wrong query', async function() {
+  it('Should read users with wrong query', async function() {
     const request = {
       firstName: 'wrong'
     };
 
     const result = await userMethods.read(request);
 
-    assert.isArray(result);
-    assert.lengthOf(result, 0);
+    assert.equal(result.numItems, 0)
+    
+    assert.isArray(result.users);
+    assert.lengthOf(result.users, 0);
   });
 
   it('Should update existing user', async function() {

@@ -102,8 +102,10 @@ describe('Bindings methods', function () {
         const request = {};
 
         let result = await bindingMethods.readAll(request);
+        
+        assert.equal(result.numItems, testBindingData.length);
 
-        result = result.map((resultItem) => {
+        result = result.bindings.map((resultItem) => {
             assert.property(resultItem, 'createdAt');
             delete resultItem.createdAt;
 
@@ -130,7 +132,9 @@ describe('Bindings methods', function () {
 
         let result = await bindingMethods.readAll(request);
 
-        result = result.map((resultItem) => {
+        assert.equal(result.numItems, testBindingData.length)
+
+        result = result.bindings.map((resultItem) => {
             assert.property(resultItem, 'createdAt');
             delete resultItem.createdAt;
 

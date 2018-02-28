@@ -18,6 +18,28 @@ sqls.create = `INSERT INTO books(
                     created_at      AS "createdAt",
                     uses_count      AS "usesCount",
                     author_id       AS "authorId";`
+sqls.readCount = (name, description) => {
+    let sqlFilter = [];
+    if(name && name.length) {
+        sqlFilter.push(`name ilike '%${name}%'`);
+    }
+    if(description && description.length) {
+        sqlFilter.push(`description ilike '%${description}%'`);
+    } 
+    let sqlQuery;
+    if(sqlFilter.length)
+        sqlQuery = "WHERE " + sqlFilter.join(' AND ');
+    else {
+        sqlQuery = "";
+    }
+
+    return `SELECT
+        count(*)
+    FROM
+        books
+    ${sqlQuery}
+    ;`;
+}
 sqls.readAll = (name, description, orderField, orderDirection) => { 
     let sqlFilter = [];
     if(name && name.length) {

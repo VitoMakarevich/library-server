@@ -14,6 +14,30 @@ sqls.create = `INSERT INTO authors(
                     first_name AS "firstName",
                     last_name  AS "lastName",
                     created_at AS "createdAt";`
+sqls.readCount = (firstName, lastName) => { 
+    let sqlFilter = [];
+    if(firstName && firstName.length) {
+        sqlFilter.push(`first_name ilike '%${firstName}%'`);
+    }
+    if(lastName && lastName.length) {
+        sqlFilter.push(`last_name ilike '%${lastName}%'`);
+    } 
+    let sqlQuery;
+    if(sqlFilter.length)
+        sqlQuery = "WHERE " + sqlFilter.join(' AND ');
+    else {
+        sqlQuery = "";
+    }
+
+    return `SELECT
+        count(*)
+    FROM
+        authors AS auth
+    ${sqlQuery}
+    ;`;
+}
+
+
 sqls.readAll = (orderField, orderDirection, firstName, lastName) => { 
     let sqlFilter = [];
     if(firstName && firstName.length) {

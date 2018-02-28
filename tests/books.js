@@ -77,7 +77,8 @@ describe('Book methods', function() {
 
     let result = await bookMethods.readAll(request); 
 
-    result = result.map((item) => {
+    assert.equal(result.numItems, mappedAndSortedTestData.length);
+    result = result.books.map((item) => {
       assert.property(item, 'createdAt');
       delete item.createdAt;
   
@@ -112,7 +113,9 @@ describe('Book methods', function() {
 
     let result = await bookMethods.readAll(request);
 
-    result = result.map((item) => {
+    assert.equal(result.numItems, mappedAndSortedTestData.length)
+
+    result = result.books.map((item) => {
       assert.property(item, 'createdAt');
       delete item.createdAt;
   
@@ -142,8 +145,9 @@ describe('Book methods', function() {
     };
 
     let result = await bookMethods.readAll(request);
+    assert.equal(result.numItems, 1);
 
-    result = result.map((item) => {
+    result = result.books.map((item) => {
       assert.property(item, 'createdAt');
       delete item.createdAt;
   
@@ -174,8 +178,9 @@ describe('Book methods', function() {
 
     const result = await bookMethods.readAll(request);
 
-    assert.isArray(result);
-    assert.lengthOf(result, 0);
+    assert.equal(result.numItems, 0)
+    assert.isArray(result.books);
+    assert.lengthOf(result.books, 0);
   });
 
   it('Should update existing book', async function() {
