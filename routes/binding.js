@@ -7,6 +7,10 @@ router.get('/', wrapAsync(async function (req, res, next) {
   res.send(authors);
 }))
 
+router.get('/:id', wrapAsync(async function (req, res, next) {
+  const bindings = await binding.readOne({id: Number(req.params.id)});
+  res.send(bindings);
+}))
 
 router.post('/', wrapAsync(async function (req, res) {
   const result = await binding.create(req.body);

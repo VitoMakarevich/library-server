@@ -88,31 +88,18 @@ sqls.readAll = (name, description, orderField, orderDirection) => {
 
 sqls.readOne = `SELECT
                     id_pk                    AS "id",
-                    first_name               AS "firstName",
-                    last_name                AS "lastName",
-                    created_at               AS "createdAt",
+                    name                     AS "name",
+                    description              AS "description",
+                    uses_count               AS "usesCount",
                     (SELECT 
-                        count(*)
+                        first_name || ' ' || last_name
                     FROM 
-                        books
-                    WHERE author_id = id_pk)::int AS "booksCount",
-                    (SELECT 
-                        json_agg(t)
-                    FROM
-                        (SELECT 
-                            id_pk AS "id",
-                            name  AS "name",
-                            description AS "description",
-                            uses_count  AS "uses_count",
-                            created_at  AS "createdAt"
-                        FROM
-                            books
-                        WHERE 
-                            author_id = books.id_pk
-                        ) AS "t"
-                    ) AS "books"
+                        authors
+                    WHERE authors.id_pk = books.author_id) AS "author",
+                    author_id                AS "authorId",
+                    created_at               AS "createdAt"
                 FROM
-                    authors
+                    books
                 WHERE
                    id_pk = $1
                 ;`

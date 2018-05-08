@@ -12,6 +12,11 @@ router.post('/', wrapAsync(async function (req, res) {
   res.send(result);
 }))
 
+router.get('/:id', wrapAsync(async function (req, res, next) {
+  const books = await book.readOne({id: Number(req.params.id)});
+  res.send(books);
+}))
+
 router.delete('/:id', wrapAsync(async function (req, res) {
   const result = await book.delete({id: Number(req.params.id)});
   res.send(result);

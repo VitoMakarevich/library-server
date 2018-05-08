@@ -25,8 +25,16 @@ sqls.readCount = `SELECT
 sqls.readAll = (orderField, orderDirection) => { 
     return `SELECT
                 id_pk       AS "id",
-                user_id     AS "userId",
-                book_id     AS "bookId",
+                (SELECT
+                    first_name || ' ' || last_name
+                FROM
+                    users
+                WHERE users.id_pk = bindings.user_id)    AS "user",
+                (SELECT
+                    name
+                FROM
+                    books
+                WHERE books.id_pk = bindings.book_id)    AS "book",
                 created_at  AS "createdAt",
                 finished_at AS "finishedAt"
             FROM
@@ -37,14 +45,47 @@ sqls.readAll = (orderField, orderDirection) => {
             OFFSET $2;`
 }
 
+sqls.readOne = `
+SELECT
+                id_pk       AS "id",
+                (SELECT
+                    first_name || ' ' || last_name
+                FROM
+                    users
+                WHERE users.id_pk = bindings.user_id)    AS "user",
+                (SELECT
+                    name
+                FROM
+                    books
+                WHERE books.id_pk = bindings.book_id)    AS "book",
+                created_at  AS "createdAt",
+                finished_at AS "finishedAt"
+            FROM
+                bindings
+            WHERE
+                id_pk = $1;
+            `
+
 sqls.finishBinding = `UPDATE
                         bindings
                       SET
-                        finished_at = localtimestamp
+                        finished_at = coalesce(finished_at, localtimestamp)
                       WHERE 
                         id_pk = $1
                       RETURNING
-                        id_pk AS "id";`
+                        id_pk       AS "id",
+                        (SELECT
+                            first_name || ' ' || last_name
+                        FROM
+                            users
+                        WHERE users.id_pk = bindings.user_id)    AS "user",
+                        (SELECT
+                            name
+                        FROM
+                            books
+                        WHERE books.id_pk = bindings.book_id)    AS "book",
+                        created_at  AS "createdAt",
+                        finished_at AS "finishedAt";`
 
 sqls.updateUsesCount = `UPDATE
                             books

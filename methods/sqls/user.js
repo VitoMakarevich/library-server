@@ -28,6 +28,36 @@ sqls.create = `INSERT INTO users(
                         user_id = users.id_pk
                     )               AS "usedBooksCount";`
 
+sqls.readOne = `SELECT
+                    id_pk           AS "id",
+                    first_name      AS "firstName",
+                    last_name       AS "lastName",
+                    created_at      AS "createdAt",
+                    email           AS "email",
+                    passport_number AS "passportNumber",
+                    (SELECT
+                        count(*)::int
+                    FROM
+                        bindings
+                    WHERE
+                        user_id = users.id_pk
+                    AND
+                        finished_at IS NOT NULL
+                    )               AS "usedBooksCount",
+                    (SELECT
+                        count(*)::int
+                    FROM
+                        bindings
+                    WHERE
+                        user_id = users.id_pk
+                    AND
+                        finished_at IS NULL
+                    )               AS "currentBooksUsed"
+                FROM 
+                    users
+                WHERE
+                    id_pk = $1`;
+
 sqls.readCount = (firstName, lastName, passportNumber, email) => { 
     let sqlFilter = [];
     if(firstName && firstName.length) {
@@ -50,7 +80,7 @@ sqls.readCount = (firstName, lastName, passportNumber, email) => {
     }
 
     return `SELECT
-        count(*)
+        count(*)::int
     FROM
         users
     ${sqlQuery}
@@ -99,36 +129,36 @@ sqls.readAll = (firstName, lastName, passportNumber, email, orderField, orderDir
     ;`;
 }
 
-sqls.readOne = `SELECT
-                    id_pk                    AS "id",
-                    first_name               AS "firstName",
-                    last_name                AS "lastName",
-                    created_at               AS "createdAt",
-                    (SELECT 
-                        count(*)
-                    FROM 
-                        books
-                    WHERE author_id = id_pk)::int AS "booksCount",
-                    (SELECT 
-                        COALESCE(json_agg(t), json_build_array())
-                    FROM
-                        (SELECT 
-                            id_pk AS "id",
-                            name  AS "name",
-                            description AS "description",
-                            uses_count  AS "uses_count",
-                            created_at  AS "createdAt"
-                        FROM
-                            books
-                        WHERE 
-                            author_id = books.id_pk
-                        ) AS "t"
-                    ) AS "books"
-                FROM
-                    authors
-                WHERE
-                   id_pk = $1
-                ;`
+// sqls.readOne = `SELECT
+//                     id_pk                    AS "id",
+//                     first_name               AS "firstName",
+//                     last_name                AS "lastName",
+//                     created_at               AS "createdAt",
+//                     (SELECT 
+//                         count(*)
+//                     FROM 
+//                         books
+//                     WHERE author_id = id_pk)::int AS "booksCount",
+//                     (SELECT 
+//                         COALESCE(json_agg(t), json_build_array())
+//                     FROM
+//                         (SELECT 
+//                             id_pk AS "id",
+//                             name  AS "name",
+//                             description AS "description",
+//                             uses_count  AS "usesCount",
+//                             created_at  AS "createdAt"
+//                         FROM
+//                             books
+//                         WHERE 
+//                             author_id = books.id_pk
+//                         ) AS "t"
+//                     ) AS "books"
+//                 FROM
+//                     authors
+//                 WHERE
+//                    id_pk = $1
+//                 ;`
 
 sqls.update =   `UPDATE
                     users

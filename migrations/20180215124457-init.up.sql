@@ -25,8 +25,8 @@ CREATE TABLE books (
 
 CREATE TABLE bindings (
     id_pk           SERIAL      PRIMARY KEY,
-    user_id         INTEGER     NOT NULL REFERENCES users(id_pk),
-    book_id         INTEGER     NOT NULL REFERENCES books(id_pk),
+    user_id         INTEGER     NOT NULL REFERENCES users(id_pk) ON DELETE CASCADE,
+    book_id         INTEGER     NOT NULL REFERENCES books(id_pk) ON DELETE CASCADE,
     created_at      TIMESTAMP   DEFAULT LOCALTIMESTAMP,
     finished_at     TIMESTAMP
 );
